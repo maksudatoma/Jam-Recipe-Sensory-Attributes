@@ -1,0 +1,940 @@
+---
+title: "Jam Recipe Optimization"
+authors:
+  - Juan
+  - Toma
+
+date: today
+date-format: long
+
+execute: 
+  echo: false
+  warning: false
+
+format:
+  html:
+    toc: true
+    number-sections: true
+
+  pdf:
+    prefer-html: true
+    fig-align: center
+    fig-width: 6
+    fig-height: 4
+
+bibliography: references.bib
+
+editor: 
+  markdown: 
+    wrap: sentence
+---
+
+
+#  Research Objective
+
+The primary objective of this study is to **optimize a jam recipe using aronia berries** to achieve the **best predicted sensory scores** through scientific evaluation. This supports a broader thesis aim to develop validated home canning recipes for aronia products that are both delicious and safe, with sensory quality being a key focus of the delicious component.
+
+### Specific Goals
+
+1.  Adapt and optimize a chokeberry (aronia) jam recipe using Aronia and Sugar as key variable ingredients.
+2.  Evaluate consumer acceptability by collecting sensory ratings on five key attributes: Flavor, Texture, Sweetness, Aftertaste, and Overall liking.
+3.  Use Response Surface Methodology (RSM) and mixed-effects models to:
+    -   Model how ingredient levels affect sensory outcomes
+    -   Identify optimal ingredient combinations
+    -   Account for variability among tasters (`Blind`) and recipes (`Recipe`)
+
+##  Experimental Design
+
+| Component              | Description                                                                                  |
+|------------------|------------------------------------------------------|
+| **Design Type**        | Central Composite Design (CCD) for two quantitative factors                                  |
+| **Factors (Inputs)**   | Aronia amount and Sugar amount (both continuous variables)                                   |
+| **Fixed Factor**       | Pectin (held constant at 81.754 across all recipes)                                          |
+| **Response Variables** | Sensory scores (Grades 1--9) for Flavor, Texture, Sweetness, Aftertaste, Overall             |
+| **Panelists**          | 59 tasters (identified by `Blind`) evaluating multiple recipes                               |
+| **Design Features**    | Includes low, high, and center points to estimate linear, interaction, and quadratic effects |
+| **Replicates**         | Center points were replicated to estimate pure error                                         |
+
+Each panelist evaluated multiple recipes, and each recipe was scored on five sensory dimensions.
+
+The modeling approach involves: - First- and second-order fixed-effects models (linear and quadratic RSM) - Mixed-effects models with random intercepts for tasters (`Blind`) and recipes (`Recipe`) - Generating 3D surface plots for visualization - Identifying optimal Aronia and Sugar levels for each sensory attribute
+
+#  Exploratory Data Analysis (EDA)
+
+From the **histogram** we see that the distribution of sensory scores across the five attributes---Aftertaste, Flavor, Overall, Sweetness, and Texture---shows generally balanced patterns, with most scores concentrated between 4 and 7. Flavor and Texture exhibit relatively symmetric, bell-shaped distributions, making them suitable for both regression and ordinal modeling. Aftertaste and Overall are slightly right-skewed but still show good variability. Sweetness, however, is sharply peaked around a score of 5, indicating limited variation and potential modeling challenges; this attribute may benefit from collapsing categories or transformation. Overall, the data supports response surface methodology (RSM) modeling, with a few attributes possibly requiring pre-processing for better model performance.
+
+**The boxplot** of sensory scores across five attributes---Aftertaste, Flavor, Overall, Sweetness, and Texture---reveals that most scores center around a median of 5. Flavor and Texture exhibit the widest variability, with higher upper quartiles, suggesting these attributes received a broader range of ratings, including higher scores. In contrast, Aftertaste, Sweetness, and Overall show narrower interquartile ranges, indicating more consistent ratings across tasters. These patterns support the use of separate response surface models for each attribute, with potential preprocessing such as log transformation or score grouping particularly beneficial for attributes with less variation like Sweetness and Overall.
+
+The **scatterplot** of Aronia versus Sugar confirms that the experimental design follows a Central Composite Design (CCD), with ingredient combinations distributed across low, central, and high levels. The presence of replicated center points suggests the design includes error estimation and supports modeling curvature. Overall, the design provides balanced coverage of the ingredient space, making it well-suited for fitting first- and second-order response surface models to optimize sensory scores.
+
+```{r}
+#| echo: false
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+# Load data
+data <- read_excel("Raw dat articles.xlsx", sheet = "J-RAW ")
+
+
+# Histogram of Grade by Attribute
+ggplot(data, aes(x = Grade)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
+  facet_wrap(~Attribute) +
+  theme_minimal() +
+  labs(title = "Distribution of Sensory Scores by Attribute")
+
+# Boxplot of Grade by Attribute
+ggplot(data, aes(x = Attribute, y = Grade, fill = Attribute)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of Sensory Scores", y = "Grade")
+
+# Scatterplot of Aronia vs Sugar
+ggplot(data, aes(x = Aronia, y = Sugar)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Ingredient Combinations (Aronia vs Sugar)")
+```
+
+#  Data Preprocessing
+
+## Step 1: Collapse Grade into Ordinal Categories
+
+```{r}
+#| echo: false
+data <- data %>%
+  mutate(Grade_grouped = case_when(
+    Grade %in% 1:2 ~ "Very Low",
+    Grade %in% 3:4 ~ "Low",
+    Grade %in% 5:6 ~ "Moderate",
+    Grade %in% 7:8 ~ "High",
+    Grade == 9     ~ "Very High"
+  ))
+
+data$Grade_grouped <- factor(data$Grade_grouped,
+                             levels = c("Very Low", "Low", "Moderate", "High", "Very High"),
+                             ordered = TRUE)
+```
+
+## Step 2: Log Transformation of Grade
+
+```{r}
+#| echo: false
+data <- data %>%
+  mutate(log_Grade = log(Grade))
+```
+
+## Step 3: Center Aronia and Sugar
+
+```{r}
+#| echo: false
+data1 <- data %>%
+  mutate(
+    Aronia_c = scale(Aronia, center = TRUE, scale = FALSE),
+    Sugar_c  = scale(Sugar, center = TRUE, scale = FALSE)
+  )
+```
+
+## Step 4: View Processed Data
+
+```{r}
+#| echo: false
+glimpse(data1)
+
+```
+
+# RSM Model
+
+## 1st order model for all Attribute
+
+**Model Summary & Interpretation**
+
+The first-order models reveal that simple linear relationships between centered ingredient levels (*Aronia* and *Sugar*) and log-transformed sensory scores provide limited predictive power, with all adjusted R² values falling below 1.1%. Among the two predictors, **Aronia** shows weak but statistically significant effects for several attributes, whereas **Sugar** has no meaningful influence across the board. Specifically, increased Aronia slightly reduced scores for **Texture**, **Flavor**, and **Overall** (all *p* < 0.05), while it slightly improved **Sweetness** scores. The **Aftertaste** model, however, lacked any significant predictors and even produced a negative adjusted R², indicating no explanatory value. 
+
+Overall, while Aronia appears to impact some attributes, the low R² values suggest that linear models alone are insufficient, and more complex (e.g., quadratic or interaction-based) models are likely needed to better capture the relationships.
+
+
+```{r}
+#| echo: false
+# List of unique sensory attributes
+attributes <- unique(data1$Attribute)
+
+# Store results in a list
+model_first_order_results <- list()
+
+# Loop through each attribute and fit first-order model
+for (attr in attributes) {
+  
+  cat("\n\n===== First-Order Model for Attribute:", attr, "=====\n\n")
+  
+  # Subset data for this attribute
+  df_attr <- filter(data1, Attribute == attr)
+  
+  # Fit first-order (linear) RSM model using centered predictors
+  model_first <- lm(log_Grade ~ Aronia_c + Sugar_c, data = df_attr)
+  
+  # Print model summary
+  print(summary(model_first))
+  
+  # Store model in list
+  model_first_order_results[[attr]] <- model_first
+}
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Manually create summary table from your model outputs
+first_order_summary <- data.frame(
+  Attribute = c("Texture", "Flavor", "Sweetness", "Aftertaste", "Overall"),
+  Aronia_Estimate = c(-2.753e-4, -2.146e-4, 2.502e-4, -1.267e-4, -2.299e-4),
+  Aronia_p = c(0.0127, 0.0192, 0.0173, 0.203, 0.00731),
+  Sugar_Estimate = c(4.380e-5, 2.633e-6, -6.101e-5, 2.063e-5, 3.127e-5),
+  Sugar_p = c(0.5193, 0.9628, 0.3455, 0.737, 0.553),
+  Adj_R2 = c(0.0065, 0.0049, 0.0064, -0.0004, 0.0078)
+)
+
+# Format p-values
+first_order_summary <- first_order_summary %>%
+  mutate(
+    Aronia_Signif = ifelse(Aronia_p < 0.05, "*", ""),
+    Sugar_Signif = ifelse(Sugar_p < 0.05, "*", "")
+  )
+
+# Display using kable
+first_order_summary %>%
+  select(Attribute, Aronia_Estimate, Aronia_p, Aronia_Signif,
+         Sugar_Estimate, Sugar_p, Sugar_Signif, Adj_R2) %>%
+  kable("html", digits = 4,
+        col.names = c("Attribute", "Aronia Estimate", "Aronia p", "", 
+                      "Sugar Estimate", "Sugar p", "", "Adj R²"),
+        caption = "First-Order Model Summary for Each Attribute") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  row_spec(0, bold = TRUE)
+
+
+```
+
+**Interpretation**
+
+The first-order response surface plot for flavor reveals a downward-sloping plane, especially along the Aronia axis, indicating that increasing Aronia tends to lower flavor ratings — a trend supported by the negative coefficient in the linear model. The red region at the peak of the surface highlights the optimal zone, where lower-than-average levels of both Aronia and Sugar yield the highest predicted flavor scores. Base contours offer a useful view of tradeoff combinations that lead to similar flavor outcomes. Since the model is first-order, the surface remains a tilted plane rather than curved, capturing only linear effects without interaction or curvature.
+
+[*Note:If needed can make plot with other attribute*]
+
+```{r}
+#| echo: false
+library(dplyr)
+library(plotly)
+
+# Subset for "Flavor"
+data_flavor <- filter(data1, Attribute == "Flavor") %>%
+  mutate(
+    Aronia_c = as.numeric(Aronia_c),
+    Sugar_c  = as.numeric(Sugar_c)
+  )
+
+# Fit second-order model
+model <- lm(log_Grade ~ Aronia_c + Sugar_c +
+                       I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+            data = data_flavor)
+
+# Create prediction grid
+x_vals <- seq(min(data_flavor$Aronia_c), max(data_flavor$Aronia_c), length.out = 50)
+y_vals <- seq(min(data_flavor$Sugar_c),  max(data_flavor$Sugar_c),  length.out = 50)
+
+grid <- expand.grid(Aronia_c = x_vals, Sugar_c = y_vals)
+
+# Predict
+grid$Predicted_log_Grade <- predict(model, newdata = grid)
+
+# Reshape to matrix form for surface plot
+z_matrix <- matrix(grid$Predicted_log_Grade, 
+                   nrow = length(x_vals), 
+                   ncol = length(y_vals))
+
+
+```
+
+
+```{r, fig.pos="H"}
+#| echo: false
+library(plotly)
+
+# Refit model after fixing Aronia_c and Sugar_c
+data_flavor <- filter(data1, Attribute == "Flavor")
+
+model <- lm(log_Grade ~ Aronia_c + Sugar_c, data = data_flavor)
+
+# Create prediction grid
+grid <- expand.grid(
+  Aronia_c = seq(min(data1$Aronia_c), max(data1$Aronia_c), length.out = 50),
+  Sugar_c  = seq(min(data1$Sugar_c), max(data1$Sugar_c), length.out = 50)
+)
+
+
+# Enhanced 3D Plot with Contours and Gradient
+plot_ly(
+  x = unique(grid$Aronia_c),
+  y = unique(grid$Sugar_c),
+  z = z_matrix,
+  type = "surface",
+  colorscale = list(c(0, 'green'), c(0.5, 'yellow'), c(1, 'red')),
+  contours = list(
+    z = list(
+      show = TRUE,
+      usecolormap = TRUE,
+      highlightcolor = "#ff0000",
+      project = list(z = TRUE)
+    )
+  )
+) %>%
+  layout(
+    title = "First-Order RSM Surface with Contours - Flavor",
+    scene = list(
+      xaxis = list(title = "Centered Aronia"),
+      yaxis = list(title = "Centered Sugar"),
+      zaxis = list(title = "Predicted Grade")
+    )
+  )
+
+```
+
+
+## 2nd order model
+
+The second-order RSM models demonstrated very low predictive power, with adjusted R² values ranging from 0.007 to 0.014, indicating that only a small portion (less than 1.5%) of the variation in sensory ratings can be explained by the ingredient levels. Among the predictors, Aronia showed a statistically significant effect on Texture, Flavor, Sweetness, and Overall, suggesting that its quantity may slightly influence these sensory perceptions. In contrast, Sugar did not show any significant main effects, implying its role is minimal within this modeling framework. A few quadratic terms and interactions—like Sugar² for Overall (p = 0.0479)—hint at mild nonlinear trends, but no strong or consistent curvatures were evident across the attributes
+
+```{r}
+#| echo: false
+# List of unique sensory attributes
+attributes <- unique(data1$Attribute)
+
+# Store second-order model results
+model_second_order_results <- list()
+
+# Loop through each attribute
+for (attr in attributes) {
+  
+  cat("\n\n===== Second-Order Model for Attribute:", attr, "=====\n\n")
+  
+  # Subset data for this attribute
+  df_attr <- filter(data1, Attribute == attr)
+  
+  # Fit second-order (quadratic) RSM model using centered predictors
+  model_second <- lm(log_Grade ~ Aronia_c + Sugar_c + 
+                                   I(Aronia_c^2) + I(Sugar_c^2) + 
+                                   Aronia_c:Sugar_c,
+                     data = df_attr)
+  
+  # Print model summary
+  print(summary(model_second))
+  
+  # Store model
+  model_second_order_results[[attr]] <- model_second
+}
+
+```
+```{r}
+#| echo: false
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# Helper function to format p-values with significance stars
+format_p <- function(p) {
+  stars <- case_when(
+    p < 0.001 ~ "***",
+    p < 0.01  ~ "**",
+    p < 0.05  ~ "*",
+    p < 0.1   ~ ".",
+    TRUE      ~ ""
+  )
+  sprintf("%.4f %s", p, stars)
+}
+
+# Build summary list with stars
+summary_list <- lapply(names(model_second_order_results), function(attr) {
+  model <- model_second_order_results[[attr]]
+  s <- summary(model)
+  p_vals <- coef(s)[, "Pr(>|t|)"]
+  
+  tibble(
+    Attribute = attr,
+    `Adj R²` = round(s$adj.r.squared, 4),
+    `p(Aronia)` = format_p(p_vals["Aronia_c"]),
+    `p(Sugar)` = format_p(p_vals["Sugar_c"]),
+    `p(Aronia²)` = format_p(p_vals["I(Aronia_c^2)"]),
+    `p(Sugar²)` = format_p(p_vals["I(Sugar_c^2)"]),
+    `p(Interaction)` = format_p(p_vals["Aronia_c:Sugar_c"])
+  )
+})
+
+# Combine into data frame
+second_order_summary_starred <- bind_rows(summary_list)
+
+# Kable table with styling
+second_order_summary_starred %>%
+  kbl(caption = "Second-Order RSM Model Summary",
+      align = "lcccccc") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE)
+
+```
+
+
+### Plot
+
+The second-order response surface plot for the 'Flavor' attribute reveals how predicted flavor scores vary with changes in Aronia and Sugar levels. The curved surface and the green–yellow–red gradient indicate a nonlinear relationship, with a clear sweet spot—represented by the red region—where the highest flavor scores (around 5.8 to 6) are achieved. This optimal zone suggests that there is a balanced combination of Aronia and Sugar that maximizes flavor. Using too little or too much of either ingredient leads to lower predicted scores, as shown by the green areas. The surface curvature and contour lines further suggest a strong interaction between Aronia and Sugar, meaning the effect of one depends on the level of the other. Practically speaking, this visualization helps identify the best ingredient ratios rather than simply increasing both, allowing for an optimized recipe that enhances flavor most effectively.
+
+
+[*Note: If needed can make plot for other attribute as well*]
+
+```{r}
+#| echo: false
+# Load required packages
+library(dplyr)
+library(plotly)
+
+# Subset data for one attribute (Flavor)
+data_flavor <- filter(data1, Attribute == "Flavor")
+
+# Ensure predictors are numeric
+data_flavor <- data_flavor %>%
+  mutate(
+    Aronia_c = as.numeric(Aronia_c),
+    Sugar_c = as.numeric(Sugar_c)
+  )
+
+# Fit second-order RSM model
+model <- lm(log_Grade ~ Aronia_c + Sugar_c + 
+                       I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+            data = data_flavor)
+
+# Create prediction grid
+grid <- expand.grid(
+  Aronia_c = seq(min(data_flavor$Aronia_c), max(data_flavor$Aronia_c), length.out = 50),
+  Sugar_c  = seq(min(data_flavor$Sugar_c), max(data_flavor$Sugar_c), length.out = 50)
+)
+
+# Coerce grid columns to numeric
+grid$Aronia_c <- as.numeric(grid$Aronia_c)
+grid$Sugar_c  <- as.numeric(grid$Sugar_c)
+
+# Predict log_Grade from the model
+grid$Predicted_log_Grade <- predict(model, newdata = grid)
+
+# Convert to matrix for surface plot
+z_matrix <- matrix(grid$Predicted_log_Grade, 
+                   nrow = 50, ncol = 50, 
+                   byrow = FALSE)
+
+
+# Plot
+plot_ly(
+  x = unique(grid$Aronia_c),
+  y = unique(grid$Sugar_c),
+  z = z_matrix,
+  type = "surface",
+  colorscale = list(c(0, 'green'), c(0.5, 'yellow'), c(1, 'red')),
+  contours = list(
+    z = list(
+      show = TRUE,
+      usecolormap = TRUE,
+      highlightcolor = "#ff0000",
+      project = list(z = TRUE)
+    )
+  )
+) %>%
+  layout(
+    title = "Second-Order RSM Surface with Contours - Flavor",
+    scene = list(
+      xaxis = list(title = "Centered Aronia"),
+      yaxis = list(title = "Centered Sugar"),
+      zaxis = list(title = "Predicted Grade")
+    )
+  )
+
+```
+
+
+### Optimal Ingrediants Level
+
+The optimal ingredient combinations for each sensory attribute were determined using second-order response surface models. For most attributes—Texture, Flavor, Aftertaste, and Overall—the optimal combination was the same: 1719 g of Aronia and 1480 g of Sugar, yielding predicted sensory scores between 5.12 and 5.99. Interestingly, Sweetness showed a different optimal profile, requiring higher levels of both Aronia (2133.6 g) and Sugar (1806.9 g) to achieve its best score of 4.74. This indicates that a single recipe may perform well across multiple attributes, but specific preferences (like sweetness) may benefit from a tailored formulation.
+
+```{r}
+#| echo: false
+# Compute global means for back-transformation
+aronia_mean <- mean(data1$Aronia)
+sugar_mean  <- mean(data1$Sugar)
+
+# Initialize storage
+optimal_summary <- data.frame()
+
+# Loop through all attributes
+for (attr in unique(data1$Attribute)) {
+  
+  # Subset and ensure numeric
+  df_attr <- data1 %>%
+    filter(Attribute == attr) %>%
+    mutate(
+      Aronia_c = as.numeric(Aronia_c),
+      Sugar_c  = as.numeric(Sugar_c)
+    )
+  
+  # Fit model
+  model <- lm(log_Grade ~ Aronia_c + Sugar_c + 
+                         I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+              data = df_attr)
+  
+  # Prediction grid
+  grid <- expand.grid(
+    Aronia_c = seq(min(data1$Aronia_c), max(data1$Aronia_c), length.out = 50),
+    Sugar_c  = seq(min(data1$Sugar_c), max(data1$Sugar_c), length.out = 50)
+  )
+  
+  # Predict and back-transform
+  grid$Predicted_log_Grade <- predict(model, newdata = grid)
+  grid$Predicted_Grade <- exp(grid$Predicted_log_Grade)
+  
+  # Find optimal point
+  optimal <- grid[which.max(grid$Predicted_Grade), ]
+  
+  # Back-transform to actual units
+  actual_aronia <- aronia_mean + optimal$Aronia_c
+  actual_sugar  <- sugar_mean  + optimal$Sugar_c
+  
+  # Store
+  optimal_summary <- rbind(optimal_summary, data.frame(
+    Attribute = attr,
+    Centered_Aronia = optimal$Aronia_c,
+    Centered_Sugar = optimal$Sugar_c,
+    Actual_Aronia = round(actual_aronia, 1),
+    Actual_Sugar = round(actual_sugar, 1),
+    Predicted_Grade = round(optimal$Predicted_Grade, 2)
+  ))
+}
+
+
+```
+
+```{r}
+#| echo: false
+library(knitr)
+library(kableExtra)
+
+# Kable table for optimal_summary
+optimal_summary %>%
+  kbl(caption = "Optimal Ingredient Levels for Each Sensory Attribute (Based on Second-Order RSM Model)",
+      digits = 2, align = "c") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE) # Make Attribute column bold
+
+```
+
+
+
+```{r}
+#| echo: false
+library(plotly)
+library(dplyr)
+
+# Get means for back-transformation (if needed)
+aronia_mean <- mean(data1$Aronia)
+sugar_mean  <- mean(data1$Sugar)
+
+# Loop through each attribute
+for (attr in unique(data1$Attribute)) {
+  
+  # Subset data and ensure numeric
+  df_attr <- data1 %>%
+    filter(Attribute == attr) %>%
+    mutate(
+      Aronia_c = as.numeric(Aronia_c),
+      Sugar_c  = as.numeric(Sugar_c)
+    )
+  
+  # Fit second-order RSM model
+  model <- lm(log_Grade ~ Aronia_c + Sugar_c +
+                I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+              data = df_attr)
+  
+  # Prediction grid
+  x_seq <- seq(min(df_attr$Aronia_c), max(df_attr$Aronia_c), length.out = 50)
+  y_seq <- seq(min(df_attr$Sugar_c), max(df_attr$Sugar_c), length.out = 50)
+  grid <- expand.grid(Aronia_c = x_seq, Sugar_c = y_seq)
+  
+  # Predict
+  grid$Predicted_log_Grade <- predict(model, newdata = grid)
+  grid$Predicted_Grade <- exp(grid$Predicted_log_Grade)
+  z_mat <- matrix(grid$Predicted_Grade, nrow = length(x_seq), ncol = length(y_seq))
+  
+  # Find optimal point
+  optimal <- grid[which.max(grid$Predicted_Grade), ]
+  
+  # Plot
+  fig <- plot_ly(
+    x = x_seq,
+    y = y_seq,
+    z = z_mat,
+    type = "surface",
+    colorscale = "RdYlGn",
+    contours = list(
+      z = list(show=TRUE, usecolormap=TRUE, highlightcolor="#ff0000", project=list(z=TRUE))
+    )
+  ) %>%
+    add_trace(
+      type = "scatter3d",
+      mode = "markers",
+      x = c(optimal$Aronia_c),
+      y = c(optimal$Sugar_c),
+      z = c(optimal$Predicted_Grade),
+      marker = list(size = 5, color = "red"),
+      name = "Optimal Point"
+    ) %>%
+    layout(
+      title = paste("3D RSM Surface with Optimal Point -", attr),
+      scene = list(
+        xaxis = list(title = "Centered Aronia"),
+        yaxis = list(title = "Centered Sugar"),
+        zaxis = list(title = "Predicted Grade")
+      )
+    )
+  
+  print(fig)
+  
+  # Optional: Save as HTML (uncomment if needed)
+  # htmlwidgets::saveWidget(fig, file = paste0("plot_", attr, ".html"))
+}
+
+
+```
+
+**Interpretation**
+These 3D surface plots illustrate how the predicted sensory scores for five jam attributes—Texture, Flavor, Sweetness, Aftertaste, and Overall—respond to different levels of Aronia and Sugar. The red dots mark the optimal ingredient combinations that yield the highest predicted grade for each attribute. Across most plots (Texture, Flavor, Aftertaste, and Overall), the optimal region lies where Aronia is low and Sugar is moderate to high, suggesting that increased Aronia may negatively impact these attributes—likely due to excessive tartness or bitterness. Sweetness, however, displays a distinct hill-shaped surface with a balanced optimum, implying that a moderate combination of both ingredients is ideal for maximizing sweetness. The Aftertaste surface is relatively flat, indicating minimal sensitivity to ingredient changes and suggesting that optimizing Aftertaste is more challenging. Overall, the patterns align with findings from  RSM. models—lower Aronia levels are generally preferred for maximizing consumer acceptance.
+
+```{r}
+#| echo: false
+library(plot3D)
+library(dplyr)
+
+# Set 2x3 plotting layout
+par(mfrow = c(2, 3), mar = c(3.5, 3.5, 3, 1))  # Enlarged margins
+
+# Loop through each attribute
+for (attr in unique(data1$Attribute)) {
+  
+  # Subset and convert to numeric
+  df_attr <- data1 %>%
+    filter(Attribute == attr) %>%
+    mutate(
+      Aronia_c = as.numeric(Aronia_c),
+      Sugar_c  = as.numeric(Sugar_c)
+    )
+  
+  # Fit second-order model
+  model <- lm(log_Grade ~ Aronia_c + Sugar_c +
+                        I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+              data = df_attr)
+  
+  # Create prediction grid
+  grid_size <- 40
+  x_seq <- seq(min(df_attr$Aronia_c), max(df_attr$Aronia_c), length.out = grid_size)
+  y_seq <- seq(min(df_attr$Sugar_c), max(df_attr$Sugar_c), length.out = grid_size)
+  grid <- expand.grid(Aronia_c = x_seq, Sugar_c = y_seq)
+  
+  # Predict and back-transform
+  grid$Predicted_log_Grade <- predict(model, newdata = grid)
+  grid$Predicted_Grade <- exp(grid$Predicted_log_Grade)
+  z_matrix <- matrix(grid$Predicted_Grade, nrow = grid_size, byrow = TRUE)
+  
+  # Find optimal point
+  optimal <- grid[which.max(grid$Predicted_Grade), ]
+  
+  # Plot surface with enhanced text visibility
+  persp3D(x = x_seq, y = y_seq, z = z_matrix,
+          theta = 40, phi = 25,
+          col = jet.col(100), border = NA,
+          xlab = "Centered Aronia", ylab = "Centered Sugar", zlab = "Predicted Grade",
+          main = attr, ticktype = "detailed",
+          cex.axis = 1.2, cex.lab = 1.4, cex.main = 1.6,
+          font.lab = 2)  # Bold axis labels
+
+  # Add red dot at optimal
+  points3D(x = optimal$Aronia_c, y = optimal$Sugar_c, z = optimal$Predicted_Grade,
+           add = TRUE, col = "red", pch = 19, cex = 1.8)
+}
+
+```
+
+![Optimal Point](optimal point.png)
+
+
+
+
+## Mixed Model
+[Note: I tried the Mixed model to see how does it working. Seems like zero variance in random effect. So, we can skip this model]
+```{r}
+#| echo: false
+# Load required package
+library(lme4)
+library(lmerTest)
+
+# List of attributes
+attributes <- unique(data1$Attribute)
+
+# Store results
+model_mixed_results <- list()
+
+# Loop through each attribute
+for (attr in attributes) {
+  
+  cat("\n\n===== Mixed RSM Model for Attribute:", attr, "=====\n\n")
+  
+  # Subset data for the current attribute
+  df_attr <- filter(data1, Attribute == attr)
+  
+  # Fit second-order RSM mixed model with random intercepts for Blind and Recipe
+  model_mixed <- lmer(log_Grade ~ Aronia_c + Sugar_c + 
+                                   I(Aronia_c^2) + I(Sugar_c^2) + 
+                                   Aronia_c:Sugar_c + 
+                                   (1 | Blind) + (1 | Recipe),
+                      data = df_attr,
+                      REML = FALSE)
+  
+  # Print model summary
+  print(summary(model_mixed))
+  
+  # Store model
+  model_mixed_results[[attr]] <- model_mixed
+}
+
+```
+
+# Multinomial Model
+
+This table summarizes the optimal ingredient levels for maximizing the probability of achieving a “Very High” sensory rating across five jam attributes using a multinomial logistic model. The highest predicted success is for the Overall rating, with a near-perfect probability (0.992) at Aronia ≈ 1905 and Sugar ≈ 2053, indicating strong overall appeal at that combination. In contrast, Flavor and Texture show lower max probabilities (0.081 and 0.049), suggesting it's more difficult to achieve top scores for those traits, particularly when Aronia levels are high. Sweetness and Aftertaste have moderate probabilities, with optimal points indicating a preference for balanced or slightly higher Aronia and lower Sugar levels. A consistent pattern emerges where low Aronia and higher Sugar generally enhance sensory scores, supporting earlier findings that excessive Aronia may reduce product acceptability.
+
+
+```{r}
+#| echo: false
+
+library(nnet)
+
+# Ensure Aronia_c and Sugar_c are numeric
+df_attr <- df_attr %>%
+  mutate(
+    Aronia_c = as.numeric(Aronia_c),
+    Sugar_c  = as.numeric(Sugar_c)
+  )
+
+# Fit multinomial model
+model <- multinom(Grade_grouped ~ Aronia_c + Sugar_c + 
+                    I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+                  data = df_attr, trace = FALSE)
+
+# Create prediction grid and make sure it's numeric
+grid <- expand.grid(
+  Aronia_c = seq(min(df_attr$Aronia_c), max(df_attr$Aronia_c), length.out = 40),
+  Sugar_c  = seq(min(df_attr$Sugar_c), max(df_attr$Sugar_c), length.out = 40)
+)
+
+# Predict class probabilities
+probs <- predict(model, newdata = grid, type = "probs")
+
+```
+
+```{r}
+#| echo: false
+library(nnet)
+library(dplyr)
+
+# Create data2 with grouped Grade
+data2 <- data1 %>%
+  mutate(Grade_grouped = case_when(
+    Grade %in% 1:2 ~ "Very Low",
+    Grade %in% 3:4 ~ "Low",
+    Grade %in% 5:6 ~ "Moderate",
+    Grade %in% 7:8 ~ "High",
+    Grade == 9     ~ "Very High"
+  )) %>%
+  mutate(
+    Grade_grouped = factor(Grade_grouped, levels = c("Very Low", "Low", "Moderate", "High", "Very High"), ordered = TRUE),
+    Aronia_c = as.numeric(Aronia_c),
+    Sugar_c = as.numeric(Sugar_c)
+  )
+
+# Initialize table to store optimal combinations
+optimal_multinomial <- data.frame()
+
+# Loop over each attribute
+for (attr in unique(data2$Attribute)) {
+
+  # Subset data for attribute
+  df_attr <- filter(data2, Attribute == attr)
+
+  # Fit multinomial model
+  model <- multinom(Grade_grouped ~ Aronia_c + Sugar_c + 
+                      I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+                    data = df_attr, trace = FALSE)
+
+  # Create prediction grid
+  grid <- expand.grid(
+    Aronia_c = seq(min(df_attr$Aronia_c), max(df_attr$Aronia_c), length.out = 60),
+    Sugar_c  = seq(min(df_attr$Sugar_c), max(df_attr$Sugar_c), length.out = 60)
+  )
+
+  # Predict probabilities
+  probs <- predict(model, newdata = grid, type = "probs")
+  probs_df <- as.data.frame(probs)
+  probs_df$Aronia_c <- grid$Aronia_c
+  probs_df$Sugar_c  <- grid$Sugar_c
+
+  # Find the row where "Very High" probability is maximized
+  best_row <- probs_df[which.max(probs_df$`Very High`), ]
+
+  # Back-transform to actual ingredient levels
+  aronia_mean <- mean(data1$Aronia)
+  sugar_mean  <- mean(data1$Sugar)
+
+  actual_aronia <- round(aronia_mean + best_row$Aronia_c, 1)
+  actual_sugar  <- round(sugar_mean + best_row$Sugar_c, 1)
+
+  # Save results
+  optimal_multinomial <- rbind(optimal_multinomial, data.frame(
+    Attribute = attr,
+    Centered_Aronia = round(best_row$Aronia_c, 2),
+    Centered_Sugar = round(best_row$Sugar_c, 2),
+    Actual_Aronia = actual_aronia,
+    Actual_Sugar = actual_sugar,
+    Max_Probability = round(best_row$`Very High`, 3)
+  ))
+}
+
+# For Kable Table
+
+
+library(knitr)
+library(kableExtra)
+
+# Display the optimal points in a clean table
+optimal_multinomial %>%
+  kbl(
+    caption = "Optimal Ingredient Levels for Maximizing 'Very High' Grade (Multinomial Model)",
+    digits = 3,
+    align = "c"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) %>%
+  column_spec(1, bold = TRUE) %>%
+  row_spec(0, bold = TRUE, background = "#f7f7f7")
+
+
+```
+
+
+### Multinomial Plot
+
+This set of 2D contour heatmaps visualizes the predicted probability of receiving a “Very High” sensory rating for five jam attributes — Texture, Flavor, Sweetness, Aftertaste, and Overall — based on a Multinomial Logistic Regression model. The plots show how different combinations of centered Aronia and Sugar concentrations influence the likelihood of high sensory ratings. Among the attributes, Overall stands out with a sharp, elliptical peak indicating a highly probable region for achieving top scores, with probabilities approaching 1. In contrast, Texture and Flavor show narrow optimal zones with modest peak probabilities (~0.03–0.04), suggesting that it is difficult to consistently achieve “Very High” ratings for these traits. Sweetness and Aftertaste present relatively flat surfaces with minimal variation, indicating poor model sensitivity and weak predictive power for distinguishing high-quality samples. Overall, the multinomial model performs best for the Overall rating, while its effectiveness is limited for the other sensory attributes.
+
+```{r}
+#| echo: false
+library(nnet)
+library(dplyr)
+
+
+# Prepare layout
+par(mfrow = c(2, 3), mar = c(4, 4, 3, 2))  # 2 rows × 3 columns
+
+# Loop over each attribute
+for (attr in unique(data2$Attribute)) {
+
+  df_attr <- filter(data2, Attribute == attr)
+
+  # Fit multinomial model
+  model <- multinom(Grade_grouped ~ Aronia_c + Sugar_c + 
+                      I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c,
+                    data = df_attr, trace = FALSE)
+
+  # Prediction grid
+  x_seq <- seq(min(df_attr$Aronia_c), max(df_attr$Aronia_c), length.out = 60)
+  y_seq <- seq(min(df_attr$Sugar_c), max(df_attr$Sugar_c), length.out = 60)
+  grid <- expand.grid(Aronia_c = x_seq, Sugar_c = y_seq)
+
+  # Predict probabilities
+  probs <- predict(model, newdata = grid, type = "probs")
+  z_mat <- matrix(probs[, "Very High"], nrow = 60, byrow = FALSE)
+
+  # Plot heatmap
+  image(x_seq, y_seq, z_mat,
+        xlab = "Centered Aronia", ylab = "Centered Sugar",
+        main = paste(attr), col = heat.colors(20))
+  contour(x_seq, y_seq, z_mat, add = TRUE)
+}
+
+# Restore plotting parameters
+par(mfrow = c(1, 1))
+
+```
+
+![*Heatmap*](multi-heatmap.png)
+
+# Model Comparison
+
+The Second-Order RSM (Response Surface Model) captures continuous sensory scores using a quadratic regression model and evaluates the significance of individual ingredients and their interactions. From the RSM table, only a few terms — especially **Aronia** in the *Overall* model (*p* = 0.0071) and **Sugar²** (*p* = 0.0479) — show statistical significance. However, the adjusted R² values are very low (0.007–0.014), indicating that these models explain very little variation in the sensory responses. This suggests that while some ingredient effects are statistically detectable, the overall predictive power is weak.
+
+In contrast, the **Multinomial Logistic Model** treats the sensory ratings as ordered categories and estimates the optimal ingredient levels to maximize the probability of achieving a “Very High” rating. This model is better suited for ordinal data and provides more interpretable outputs, such as probabilities. Notably, it achieves a **very high probability (0.992)** for the *Overall* score at Aronia ≈ 1905 and Sugar ≈ 2053 — a much stronger prediction than RSM's low R²s could support. Even though some probabilities (e.g., *Texture*, *Flavor*) remain low, this method better reflects the categorical nature of sensory evaluations.
+
+
+*Interpretation*
+This figure compares the performance of two modeling strategies for predicting jam’s Overall sensory quality. The RSM model (left plot) shows a weak relationship between predicted and observed log-transformed grades, with predictions tightly clustered and failing to reflect the full observed range — suggesting underfitting. Meanwhile, the multinomial logistic model (right plot) produces uniformly low probabilities for a “Very High” rating across all actual grade groups, even for truly high-rated samples, indicating it’s overly conservative. Overall, both models struggle — the RSM lacks sensitivity, and the multinomial model fails to differentiate top-performing jams — pointing to the need for more flexible or feature-rich modeling techniques (like random forest) [*If you want I can try*]
+
+```{r}
+#| echo: false
+# Set up 2-panel plot
+par(mfrow = c(1, 2))
+
+# ---- Prepare data ----
+df_rsm <- filter(data1, Attribute == "Overall")
+df_mult <- filter(data2, Attribute == "Overall")
+
+# ---- Fit models ----
+
+# RSM model (log-grade continuous outcome)
+model_rsm <- lm(log_Grade ~ Aronia_c + Sugar_c + 
+                  I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c, 
+                data = df_rsm)
+
+# Multinomial model (categorical outcome)
+library(nnet)
+model_mult <- multinom(Grade_grouped ~ Aronia_c + Sugar_c + 
+                         I(Aronia_c^2) + I(Sugar_c^2) + Aronia_c:Sugar_c, 
+                       data = df_mult, trace = FALSE)
+
+# ---- Panel 1: RSM Observed vs. Predicted ----
+predicted_rsm <- predict(model_rsm, newdata = df_rsm)
+
+plot(predicted_rsm, df_rsm$log_Grade,
+     xlab = "Predicted log_Grade",
+     ylab = "Observed log_Grade",
+     main = "RSM: Observed vs. Predicted",
+     pch = 19, col = "steelblue")
+abline(0, 1, col = "red", lwd = 2)
+
+# ---- Panel 2: Multinomial probabilities by actual grouped grade ----
+probs_mult <- predict(model_mult, newdata = df_mult, type = "probs")
+
+boxplot(probs_mult[, "Very High"] ~ df_mult$Grade_grouped,
+        main = "Multinomial: P(Very High) by Grade Group",
+        xlab = "Actual Grade Group",
+        ylab = "Predicted Probability",
+        col = "skyblue")
+
+```
+## Recommendation (Not Finalized)
+
+Given the ordinal structure of the sensory data and the clearer interpretability of results, the **multinomial logistic model** is the preferred approach for guiding ingredient optimization in this jam formulation study. It not only provides actionable probabilities for achieving desirable outcomes but also identifies combinations with the highest potential for consumer satisfaction. The RSM can still be used as a complementary tool for exploring linear/quadratic trends, but for decision-making, the multinomial model offers more meaningful insights.
+
