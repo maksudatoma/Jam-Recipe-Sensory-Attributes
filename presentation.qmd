@@ -1,0 +1,408 @@
+---
+title: "Project Portfolio: Developing and Validating an Aronia-Based Jam Recipe Using Sensory Evaluation"
+author: "Maksuda Toma"
+institute: "University of Nebraska Lincoln"
+date: today
+format:
+  beamer:
+    theme: metropolis
+    colortheme: beaver
+    title-slide-attributes: "align=center"
+    pdf-engine: xelatex
+    include-in-header: header.tex
+    mainfont: Times New Roman
+bibliography: references.bib
+csl: apa.csl
+---
+
+# Content
+
+- Introduction
+- Data Summary
+- Exploratory Data Analysis
+- Model Selection
+- Result
+- Conclusion and Recommendation
+
+# Introduction
+
+**Background and Motivation**
+
+- Aronia berries contain antioxidants and bioactive substances that may prevent chronic illnesses.
+- Due to its astringent flavor and poor consumer awareness, Aronia is misused despite its health benefits.
+- Jam is a tasty, nutritious way to get Aronia into the diet
+
+**Objective**
+
+- This study aims to optimize a jam recipe using aronia berries to achieve the best predicted sensory scores through sensory evaluation
+
+# Method
+
+**Jam Making and Quality Control**
+
+- The USDA blackberry jam recipe was modified by using Aronia berries and standardizing with 81.754g pectin to each batch
+- Fully ripe berries were washed, pureed, then boiled with pectin and sugar.  After skimming foam, water-bath canned the hot jam in sterilized jars.
+ 
+**Quality Checks**
+
+- Digital refractometer measured sugar concentration with Brix reading
+- A calibrated digital pH meter was used to measure pH after cooking for safety purpose 
+
+#  Experimental Design with Data Summary
+
+::: {.block}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\begin{tabular}{rrrrrlr}
+\hline
+   Blind &   Aronia &   Sugar &   Pectin &   Recipe & Attribute   &   Grade \\
+\hline
+   482.1 &     1994 &    1925 &   81.754 &        5 & Texture     &       6 \\
+   482.1 &     1994 &    1925 &   81.754 &        5 & Sweetness   &       5 \\
+   482.1 &     1994 &    1925 &   81.754 &        5 & Aftertaste  &       2 \\
+   482.1 &     1994 &    1925 &   81.754 &        5 & Overall     &       4 \\
+\hline
+\end{tabular}
+\caption{Jam Recipe Dataset}
+\end{table}
+
+:::
+
+- Dataset includes panelist ID, recipe code, ingredients, attribute, and score
+- 12 jam recipes rated on 5 sensory attributes
+- 59 untrained panelists evaluated randomized sets of 12 jam recipes each
+- To eliminate bias, panelists were given unique codes to randomly order dishes in tasting booths.
+- 3,540 total observations collected using a 9-point hedonic scale
+
+# Data Summary (Cont.)
+
+```{=latex}
+\begin{table}[H]
+\centering
+\scriptsize
+\begin{tabular}{cc}
+\toprule
+\textbf{Recipe} & \textbf{Aronia (g), Sugar (g)} \\
+\midrule
+1 & 1800,   1610 \\
+2 & 2188,   1610 \\
+3 & 1800,   2240 \\
+4 & 2188,   2240 \\
+5 & 1994,   1925 \\
+6 & 1994,   1925 \\
+7 & 1719,   1925 \\
+8 & 2268,   1925 \\
+9 & 1994,   1480 \\
+10 & 1994,  2370 \\
+11 & 1994,  1925 \\
+12 & 1994,  1925 \\
+\bottomrule
+\end{tabular}
+\caption{Combination of Aronia Jam Formulations}
+\end{table}
+
+```
+
+- The experiment employed 12 Aronia jam formulations with different concentrations of Aronia and Sugar (in grams)
+---
+
+# Exploratory Data Analysis
+
+![*Histogram*](000010.png)
+- Almost all attributes follow the bell shaped curves
+---
+
+# EDA (Cont.)
+
+![*Boxplot*](000012.png){width=80% height=160px}
+
+- Median score is 5 across all sensory attributes.
+- Flavor and Texture show the most variation (higher upper quartiles).
+- Aftertaste, Sweetness, and Overall have lower IQR
+
+---
+
+# Model Structure
+
+RSM is a statistical technique used to model and optimize complex relationships between ingredients and sensory responses using polynomial regression
+
+\scriptsize
+The second-order polynomial (RSM) model form:
+$$
+\text{Score} = \beta_0 + \beta_1 A + \beta_2 A^2 + \beta_3 S + \beta_4 S^2 + \beta_5 AS + \beta_6 AS^2 + \beta_7 A^2S + \beta_8 A^2S^2 + \varepsilon
+$$
+
+Where:  
+- $A$ = Aronia level (grams), $S$ = Sugar level (grams) 
+- $\beta_0, \dots, \beta_8$ = Coefficient values  
+- $\text{Score}$ = predicted rating (1–9 scale) 
+- $\varepsilon$ = random error term. $\varepsilon \sim \mathcal{N}(0,\sigma^2)$ 
+
+- Tried multiple models: first-order RSM, second-order, mixed models, and multinomial logistic regression.
+- Second-order polynomial regression performed best across attributes.
+- Final models included linear, quadratic, and interaction terms for Aronia and Sugar.
+- To model each characteristic as a response variable, the dataset was reshaped from long to wide
+
+# Assumption Checking
+
+- The residuals vs. fitted plots show that residuals are evenly scattered around the horizontal reference line, indicating no major violations of linearity or unequal variance
+
+![*residuals vs. fitted plots*](000025.png){width=80% height=200px}
+
+# Assumption Checking (Cont.)
+
+- Residual histograms are normal
+- The residuals' bell-shaped distributions around zero show a normal distribution, as expected under linear regression.
+
+![*Histogram*](000024.png){width=80% height=200px}
+
+
+# Assumption Checking (Cont.)
+
+- Normality assumption mostly holds
+- Flavor, Texture & Aftertaste: residuals mostly normal.
+- Sweetness: slight deviation from normality.
+
+![*Q-Q Plot*](00003a.png){width=80% height=200px}
+
+# Result
+
+![*Mean Sensory Score*](mean_sensory.png){width=80% height=160px}
+
+- Recipe 10 scored highest for Flavor (6.05) and Overall (5.56).
+- Recipe 2 performed well in Flavor and Overall, while Recipe 3 scored lower in Sweetness and Aftertaste.
+- Moderate-to-high Sugar and Aronia levels yielded better sensory outcomes
+
+
+# Result (ANOVA)
+
+\scriptsize
+- Aronia significantly influenced all attributes — especially strong for Sweetness (*p* < 0.001).
+- Sugar showed significant quadratic effects on Flavor and Overall, suggesting its impact is nonlinear.
+- Most Aronia–Sugar interactions were insignificant, except Aronia²:Sugar, which affected Aftertaste.
+- Aronia is the key driver of sensory attributes; Sugar provides secondary, curved influence.
+
+```{r}
+# | echo: false
+library(kableExtra)
+library(dplyr)
+
+# Your data (example)
+anova_table <- tribble(
+  ~Attribute, ~Aronia, ~Aronia2, ~Sugar, ~Sugar2, ~`Aronia:Sugar`, ~`Aronia:Sugar2`, ~`Aronia2:Sugar`, ~`Aronia2:Sugar2`,
+  "Texture",    "0.0041 **",  "0.8775", "0.2306", "0.1936", "0.1643", "0.6981", "0.4665", "0.3029",
+  "Flavor",     "0.0324 *",   "0.6681", "0.6121", "0.0387 *", "0.2267", "0.2526", "0.0755 .", "0.1742",
+  "Sweetness",  "0.0006 ***", "0.2688", "0.1978", "0.2189", "0.6651", "0.6390", "0.5254", "0.5375",
+  "Aftertaste", "0.2412",     "0.8936", "0.6240", "0.2816", "0.2610", "0.3950", "0.0126 *", "0.1978",
+  "Overall",    "0.0085 **",  "0.6509", "0.4213", "0.0125 *", "0.0523 .", "0.4669", "0.1163", "0.6209"
+)
+
+kbl(anova_table, format = "latex", booktabs = TRUE,
+    caption = "ANOVA Table with Significance Levels by Attribute") %>%
+  kable_styling(latex_options = c("scale_down"), font_size = 10)
+
+```
+
+
+# Result - Estimated Polynomial Model
+
+The following second-order polynomial model was fitted for the **Flavor** attribute to capture linear, quadratic, and interaction effects of Aronia ($A$) and Sugar ($S$) levels:
+
+\tiny
+
+$$
+\begin{aligned}
+\text{Score(Flavor)} =\ & -699.5 + 0.6859A - 0.0001648A^2 + 0.8379S - 0.0002429S^2 \\
+& - 0.0008156AS + 0.0000002367AS^2 + 0.0000001961A^2S - 0.00000005705A^2S^2 + \varepsilon
+\end{aligned}
+$$
+
+\normalsize
+
+- **Aronia and Sugar** both contribute positively to flavor up to a point
+- **Quadratic terms** indicate diminishing returns at higher levels (non-linearity)
+- **Interaction effects** are small but included for completeness
+- Similar models were fitted for Texture, Sweetness, Aftertaste, and Overall (see Appendix)
+
+
+# Optimization Results
+
+![*Optimal Level*](optimal.png){width=80%}
+
+- Predicted scores range from 5.20 to 6.07, with associated standard errors (SE) and 95% confidence intervals (CI).
+- Overall liking is highest at 1719g Aronia and 1480g Sugar, predicting a score of 6.07.
+- Sweetness was maximized at 2268g Aronia, indicating preferences vary by attribute.
+
+---
+
+# 3D Surface Plots: Texture & Flavor
+
+- **Texture**: Best at 1719g Aronia and 2017g Sugar (Score ≈ 5.45)
+- **Flavor**: Best at 1719g Aronia and 1724g Sugar (Score ≈ 5.98)
+- Texture improves with moderate Aronia and higher Sugar
+- Flavor rating drops at extreme ingredient levels
+
+:::{.columns}
+::: {.column width="50%"}
+**Texture Surface**  
+![Texture Plot](newplot-1.png)
+:::
+::: {.column width="50%"}
+**Flavor Surface**  
+![Flavor Plot](flavor.png)
+:::
+:::
+
+---
+
+# 3D Surface Plots: Sweetness & Aftertaste
+
+- **Sweetness**: Best at 2268g Aronia, 1794g Sugar (Score ≈ 5.20)
+- **Aftertaste**: Highest at 2024g Aronia and 2370g Sugar (Score ≈ 5.50)
+- Extreme ingredient amounts show diminishing returns
+
+:::{.columns}
+::: {.column width="50%"}
+**Sweetness Surface**  
+![Sweetness Plot](sweetness.png)
+:::
+::: {.column width="50%"}
+**Aftertaste Surface**  
+![Aftertaste Plot](aftertaste.png)
+:::
+:::
+
+---
+
+# 3D Surface Plot: Overall Liking
+
+\centering
+
+**Overall Surface**  
+![Overall Plot](overall.png){width=60% height=200px}
+
+- **Overall Score**: Highest at 1719g Aronia and 1480g Sugar (Score ≈ 6.07)
+- Highlights ideal formulation for broad sensory acceptance
+
+
+# Conclusion
+
+- Aronia and Sugar levels significantly influence the sensory attributes of jam.
+- Second-order polynomial regression captured both linear and interaction effects.
+- Aronia showed a consistently strong and significant effect across all attributes.
+- Sugar played a more subtle role, with significant quadratic and interaction terms.
+- Optimization revealed that Flavor and Overall scores peaked around:
+  - **1719g Aronia**  
+  - **1480–1720g Sugar**
+
+---
+
+# Recommendation
+
+- Use moderate-to-high levels of both Aronia (around 1719g) and Sugar (around 1480g) to maximize overall consumer liking.
+
+- Avoid extremely high levels of either ingredient, as quadratic effects indicate diminishing returns and possible declines in scores (especially for flavor and sweetness).
+
+- Tailor formulation based on desired attribute:
+  - For sweeter taste → increase **Sugar** (up to ~1794g).
+  - For stronger aftertaste → slightly increase **Aronia** (up to ~2024g).
+
+---
+
+# References
+
+\scriptsize
+
+Benoit, K. (2011). *Linear regression models with logarithmic transformations*. London School of Economics.
+
+Canning, K. (2010). A wellness state of mind. *Private Label Buyer*, *24*(3), 41.
+
+Clostridium Botulinum. (2010). United States Department of Agriculture, Food Safety; Inspection Service.
+
+Dufort, E. L., Sogin, J., Etzel, M. R., & Ingham, B. H. (2017). Inactivation kinetics of pathogens during thermal processing in acidified broth and tomato purée (pH 4.5). *Journal of Food Protection*, *80*(12), 2014–2021. https://doi.org/10.4315/0362-028X.JFP-17-147
+
+Fügel, R., Carle, R., & Schieber, A. (2005). Quality and authenticity control of fruit purées, fruit preparations and jams—a review. *Trends in Food Science & Technology*, *16*(10), 433–441. https://doi.org/10.1016/j.tifs.2005.07.001
+
+Kang, M.-S., Kang, Y.-R., Lee, Y., & Chang, Y. H. (2018). Effect of mixed culture inoculation on chemical and sensory properties of Aronia (*Aronia melanocarpa*). *LWT - Food Science and Technology*, *98*, 418–423. https://doi.org/10.1016/j.lwt.2018.09.006
+
+
+# Thank You
+
+\begin{center}
+\LARGE \textbf{Questions?}
+\end{center}
+
+# Appendix – Texture Model
+
+\tiny
+
+$$
+\begin{aligned}
+\text{Score(Texture)} =\ & -751.6 + 0.7853A - 0.00012019A^2 + 0.7566S - 0.00018665S^2 \\
+& + 0.0007824AS + 0.00000001926AS^2 + 0.0000000204A^2S + \varepsilon
+\end{aligned}
+$$
+
+\normalsize
+
+- **Aronia and Sugar** both have positive effects on Texture.
+- Quadratic and interaction terms suggest a curved relationship.
+- Moderate levels of ingredients optimize Texture.
+
+---
+
+# Appendix – Sweetness Model
+
+\tiny
+
+$$
+\begin{aligned}
+\text{Score(Sweetness)} =\ & -283.6 + 0.2972A - 0.00007714A^2 + 0.3171S - 0.00009014S^2 \\
+& - 0.0003283AS + 0.00000009323AS^2 + 0.00000008563A^2S - 0.00000002428A^2S^2 + \varepsilon
+\end{aligned}
+$$
+
+\normalsize
+
+- **Sugar** has a stronger effect on Sweetness than Aronia.
+- Diminishing returns and interaction effects are present.
+
+---
+
+# Appendix – Aftertaste Model
+
+\tiny
+
+$$
+\begin{aligned}
+\text{Score(Aftertaste)} =\ & -581.5 + 0.5711A - 0.0001379A^2 + 0.7546S - 0.0002316S^2 \\
+& - 0.0007371AS + 0.0000002269AS^2 + 0.0000001786A^2S - 0.00000005514A^2S^2 + \varepsilon
+\end{aligned}
+$$
+
+\normalsize
+
+- Positive contributions from both ingredients.
+- Quadratic and interaction terms influence lingering taste.
+
+---
+
+# Appendix – Overall Model
+
+\tiny
+
+$$
+\begin{aligned}
+\text{Score(Overall)} =\ & -139.8 + 0.1396A - 0.00003183A^2 + 0.2461S - 0.00008542S^2 \\
+& - 0.0002372AS + 0.00000008246AS^2 + 0.00000005501A^2S - 0.00000001931A^2S^2 + \varepsilon
+\end{aligned}
+$$
+
+\normalsize
+
+- **Overall liking** reflects balanced contributions of both ingredients.
+- Positive interaction terms suggest synergy when both are moderate.
+
+
