@@ -1,0 +1,972 @@
+---
+title: "Project Portfolio"
+authors: 
+  Maksuda Aktar Toma
+date: today
+date-format: long
+execute: 
+  echo: false
+  warning: false
+format:
+  pdf: 
+    fig-align: center
+    fig-width: 6
+    fig-height: 4
+bibliography: references.bib
+editor: 
+  markdown: 
+    wrap: sentence
+---
+
+# Portfolio Overview
+
+## Consulting Project Summaries
+
+- **Jam Recipe Optimization**: [Brief description of project]
+- **CBCT Use Among General Dentists in Nebraska**: [Brief description of project]
+- **Effects of Drying Temperature, Thickness, and Water Activity on Salmonella Lethality in Beef Jerky**
+
+
+
+## Reflections on Client Meetings
+
+- [Meeting 1: Summary and Reflection]
+- [Meeting 2: Summary and Reflection]
+
+## Communications with Client
+
+- [Summarized important communications]
+
+## Summaries of Results and Reports Shared
+
+- [Summary of result reports]
+
+# Final Report
+
+## Journal Template Chosen
+
+- **Journal Name**: PLOS ONE
+- **Reference Style**: PLOS ONE format
+
+# Abstract
+
+*[Write after completing the report]*
+
+Summary of:
+- Motivation
+- Research question
+- Findings
+- Conclusion
+
+# 1. Introduction
+
+The rising consumer demand for functional meals and natural health products to prevent future health problems has led to the exploration and utilization of fruits rich in bioactive compounds [@Canning2010]. Aronia berries (*Aronia melanocarpa*), also known as chokeberries, have attracted attention for their remarkable health benefits, primarily associated with their high levels of antioxidants, polyphenols, and anthocyanins [@Sidor2019]. These small, black berries possess substantial antioxidant properties, reducing oxidative stress and potentially lowering the risk of chronic conditions such as cardiovascular diseases, cancer, and diabetes [@Ren2022].
+
+Despite their nutritional advantages, Aronia berries remain widely underutilized in mainstream food products, mostly due to their astringent taste and a lack of consumer knowledge [@Kang2018]. The Aronia industry seeks to promote the utilization of this fruit in value-added products to increase demand. This study addresses the deficiency by developing a jam recipe that incorporates Aronia berries as the primary component. Jam, a distinguished fruit preserve, effectively facilitates the inclusion of Aronia berries in the diet in a palatable way while maintaining their nutritional benefits; this is due to the necessary amount of soluble dry matter in the jam, which influences the sensory characteristics of the food [@Fugel2005].
+
+The safety of home-canned goods is crucial for consumers; insufficient food preservation may lead to the proliferation of harmful bacteria, such as *Escherichia coli* [@Dufort2017]. Although chokeberries have a low pH (3.3–3.9) [@King2022], which reduces the risk of *Clostridium botulinum* contamination [@USDA2010], proper thermal processing is necessary to ensure the microbiological safety and quality of the canned product.
+
+Moreover, the sensory attributes of the jam, including flavor, texture, and general appeal, are essential for consumer approval. The application of sensory evaluation through surface response methodology (RSM) aids in optimizing the recipe to achieve a balance between safety and flavor [@Yusof2021].Its application enables systematic exploration of interactions between ingredients and processing conditions, helping to identify ideal combinations for consumer preference [@Piepho2019]. This project examines the antioxidant capacity of Aronia berry jam post-thermal processing, offering insights on the retention of its potential health benefits.
+
+This project will detail the extensive process and thorough analysis of modifying the jam recipe and identifying the optimal formulation based on judge ratings, using statistical modeling techniques to guide product optimization [@Tapre2018].
+
+
+# 2. Methods
+
+## 2.1 Aronia Jam Preparation
+
+A recipe for blackberry jam with added pectin was selected from the National Center for Home Food Preservation, and the blackberries were substituted with Aronia berries. Following USDA guidelines, canning jars (16 fl oz, 473 ml, Ball Canning Corporation, Muncie, IN) were sterilized, and two-piece canning lids were boiled for ten minutes prior to use [@USDA2009]. Fully ripe berries were sorted and washed to remove stems and caps. The berries were blended at high speed for ten minutes in a professional blender to ensure homogeneity of the berry paste[@Fugel2005].
+
+The paste was transferred to a saucepan, where pectin and butter were added. The mixture was heated to a rolling boil under constant stirring. Sugar was then added, and the mixture was returned to a rolling boil for one minute. After removing the foam with a metal spoon, the hot jam was poured into sterilized jars, leaving ¼ inch of headspace. Jar rims were cleaned with a damp paper towel, and two-piece metal lids were secured finger-tight.
+
+The jars were processed in a 23-liter boiling water canner (Victorio VKP1130; Victorio Kitchen Products, Orem, UT) for 15 minutes and then cooled overnight undisturbed. Proper sealing was confirmed the next day by checking for vacuum seals [@Etzel2015].
+
+### 2.1.2 Brix Degrees Measurement
+
+After cooking each batch, jam samples were collected to measure solids content using a digital refractometer (Hanna HI96801, Hanna Instruments, Smithfield, RI), which had been calibrated with distilled water. A small sample was placed on the cleaned prism surface, and Brix readings were recorded.
+
+### 2.1.3 pH Measurement
+
+To ensure proper acidity for boiling water canning, the pH of each batch was measured after cooking. Samples were diluted 1:1 with deionized water, transferred into plastic cups, and measured using a digital pH meter (Orion Star A111, Thermo Fisher Scientific, Waltham, MA). The probe was inserted, allowed to stabilize, and the final pH was recorded [@Dufort2017].
+
+## 2.2 Experimental Design
+
+This study employed a Central Composite Design to assess the influence of two continuous variables—Aronia quantity and Sugar quantity—on the sensory attributes of Aronia jam.  Twelve jam recipes were developed, utilizing combinations of low, high, axial, and center locations to assess linear, interaction, and quadratic effects.  Pectin was maintained at a constant weight of 81.754 g in all recipes.  Fifty-nine untrained panelists engaged in the sensory evaluation, with each getting a randomized selection of nine dishes.  Assessments were performed separately in tasting booths to reduce bias, and the sequence of recipes was randomized by unique codes supplied to each panelist.
+
+Each row in the dataset represents a score for one of the following sensory attributes: texture, flavor, sweetness, aftertaste, or overall like. The observations are made at the panelist-attribute level.   A 9-point hedonic scale was used to record sensory evaluations; values ranged from 1 (severe dislike) to 9 (extreme liking).   Blind (panelist ID), Recipe (formulation code), Aronia, Sugar, Pectin (fixed), Attribute, and Grade are among the factors.
+
+
+As shown in @tbl-formulations, 12 Aronia jam formulations used in the experiment, each defined by a unique combination of Aronia and Sugar amounts (in grams). These combinations form the basis of the response surface design used for sensory evaluation.
+
+```{r}
+#| label: tbl-formulations
+#| tbl-cap: "Table 1. Combination of Aronia Jam Formulations"
+#| echo: false
+
+library(readxl)
+library(dplyr)
+library(knitr)
+
+data <- read_excel("Raw dat articles.xlsx", sheet = "J-RAW ")
+
+design_table <- data %>%
+  select(Recipe, Aronia, Sugar) %>%
+  distinct() %>%
+  arrange(Recipe) %>%
+  rename(
+    `Amount of Aronia (g)` = Aronia,
+    `Amount of Sugar (g)` = Sugar
+  )
+
+kable(design_table)
+
+```
+
+
+
+
+## 2.3 Exploratory Data Analysis (EDA)
+
+First we will look into the data distribution of the response variable. To do so, we're plotting Histogram, Boxplot and Scatter Plot are made for the each response variable.
+
+The histogram demonstrates that sensory values for Aftertaste, Flavor, Overall, Sweetness, and Texture are balanced, with most scores between 4 and 7.
+Both regression and ordinal modeling work with Flavor and Texture's symmetric, bell-shaped distributions.
+Overall and aftertaste are right-skewed but variable.
+Sweetness, however, is steeply peaked at 5, indicating limited variation and modeling issues. Collapsing categories or transformation may help this attribute.
+
+A median of 5 is shown in the boxplot of sensory scores for aftertaste, flavor, overall, sweetness, and texture. Flavor and Texture appear to have the most variation, with greater upper quartiles, implying higher ratings and scores. In contrast, Aftertaste, Sweetness, and Overall had lower interquartile ranges, indicating more consistent assessments.
+
+The Aronia versus Sugar scatterplot shows that the experimental design is a Central Composite Design (CCD) with low, central, and high ingredient combinations.
+The repeating center points indicate error estimation and curvature modeling.
+
+```{r,,fig.pos="H"}
+#| label: fig-hist
+#| echo: false
+#| eval: true
+#| fig-cap: "Histogram, Box plot and Scatter plot of the response variable."
+#| layout-ncol: 2
+#| fig-subcap: 
+#|  - "Histogram"
+#|  - "Box plot"
+#|  - "Scatter plot"
+#| fig-width: 6
+#| fig-height: 4
+
+
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+# Load data
+data <- read_excel("Raw dat articles.xlsx", sheet = "J-RAW ")
+
+# Histogram of Grade by Attribute
+ggplot(data, aes(x = Grade)) +
+  geom_histogram(binwidth = 1, fill = "steelblue", color = "white") +
+  facet_wrap(~Attribute) +
+  theme_minimal() +
+  labs(title = "Distribution of Sensory Scores by Attribute")
+
+# Boxplot of Grade by Attribute
+ggplot(data, aes(x = Attribute, y = Grade, fill = Attribute)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Boxplot of Sensory Scores", y = "Grade")
+
+# Scatterplot of Aronia vs Sugar
+ggplot(data, aes(x = Aronia, y = Sugar)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  labs(title = "Ingredient Combinations (Aronia vs Sugar)")
+```
+
+The @fig-line-plot depicts the average sensory profile across five attributes—Aftertaste, Flavor, Overall, Sweetness, and Texture—for each of the twelve jam recipes.Each line represents an individual recipe, demonstrating its interpretation across multiple sensory dimensions.
+
+Recipe 11 demonstrates the greatest average ratings across all dimensions, particularly in Flavor (surpassing 6.0) and Overall preference, signifying a marked favor among panelists. In contrast, Recipes 2 and 7 demonstrate notable reductions in Sweetness and Texture, indicating potential inadequacies in those formulation elements.
+
+Most other recipes display consistent performance with minor variations; nevertheless, Flavor stands out as the primary characteristic among recipes, while Sweetness shows significant variability.
+This image effectively differentiates recipes with a harmonious sensory appeal from others requiring particular improvements.
+
+```{r,,fig.pos="H"}
+#| label: fig-line-plot
+#| echo: false
+#| eval: true
+#| fig-cap: "Line Plot"
+
+library(dplyr)
+library(ggplot2)
+
+# Summarize the data: mean grade for each recipe and attribute
+avg_scores <- data %>%
+  group_by(Recipe, Attribute) %>%
+  summarise(Avg_Grade = mean(Grade), .groups = "drop")
+
+profile_data <- data %>%
+  group_by(Recipe, Attribute) %>%
+  summarise(Avg_Grade = mean(Grade), .groups = "drop")
+
+ggplot(profile_data, aes(x = Attribute, y = Avg_Grade, group = factor(Recipe), color = factor(Recipe))) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
+  labs(title = "Sensory Profile by Recipe",
+       y = "Average Grade", color = "Recipe") +
+  theme_minimal()
+```
+
+The bar charts provide the average sensory scores (from 1 to 9) for each jam recipe, assessing aftertaste, flavor, overall impression, sweetness, and texture. Within the attribute panels, recipes are ranked from greatest to worst. Recipe 10 consistently surpasses the others in Aftertaste, Flavor, and Overall, making it a strong candidate. Recipes 4 and 6 received the highest scores for sweetness, indicating that sweetness preferences may differ from overall enjoyment. Recipe 8 excels in Texture but does not perform as well in other qualities, whereas Recipe 3 scores poorly in several areas and may need reformulation.
+
+```{r,,fig.pos="H"}
+#| label: fig-bar
+#| echo: false
+#| eval: true
+#| fig-cap: "Bar plots of the response variable."
+
+library(dplyr)
+library(ggplot2)
+
+# Step 1: Compute average grade per recipe for each attribute
+avg_pred <- data %>%
+  group_by(Recipe, Attribute) %>%
+  summarise(Avg_Grade = mean(Grade), .groups = "drop")
+
+# Step 2: Order recipes within each attribute by Avg_Grade (descending)
+avg_pred <- avg_pred %>%
+  group_by(Attribute) %>%
+  arrange(desc(Avg_Grade)) %>%
+  mutate(Recipe = factor(Recipe, levels = unique(Recipe))) %>%
+  ungroup()
+
+# Step 3: Plot
+ggplot(avg_pred, aes(x = Recipe, y = Avg_Grade)) +
+  geom_col(fill = "steelblue") +
+  facet_wrap(~Attribute, scales = "free_x") +
+  labs(
+    title = "Average Sensory Grades per Recipe",
+    x = "Recipe (Descending by Grade)",
+    y = "Average Grade (1–9 scale)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+## 2.4 Model Formulation
+
+I have experimented with many models to enhance data fitting. I started with fitting first-order Response Surface Methodology, second-order models, and Mixed Models, and also experimented with Multinomial Logistic Regression.  Among all the Linear Regression Model works better.
+So, finally I fitted second-order polynomial regression models for Texture, Flavor, Sweetness, Aftertaste, and Overall impression to assess ingredient levels' effects. To model each characteristic as a response variable, the dataset was reshaped from long to wide. Each model contained linear, quadratic, and interaction factors for Aronia and Sugar to represent non-linear effects and ingredient interactions. Response surface methodology is used to determine how ingredient combinations affect sensory outcomes and optimize jam recipes based on expected sensory performance.
+
+For each sensory attribute (Texture, Flavor, Sweetness, Aftertaste, and Overall), we fit the following second-order polynomial regression model with interaction terms:
+
+$$
+\text{Score} = \beta_0 + \beta_1 A + \beta_2 A^2 + \beta_3 S + \beta_4 S^2 + \beta_5 A S + \beta_6 A S^2 + \beta_7 A^2 S + \beta_8 A^2 S^2 + \varepsilon
+$$
+
+Where:
+
+  $\text{Score}$ = predicted sensory rating (on a 1–9 scale),
+  $A$ = Aronia level (in grams),
+  $S$ = Sugar level (in grams),
+  $\varepsilon$ = random error term,
+  $\beta_0, \ldots, \beta_8$= model coefficients estimated from the data.
+
+
+```{r}
+#| echo: false
+
+library(tidyverse)
+
+#Data clean
+dat <- readxl::read_excel('Raw dat articles.xlsx') %>%
+  group_by(Recipe, Attribute) %>%
+  mutate(Rep = 1:n()) %>% #Only needed for pivot_wider, assumes subjects are listed sequentially (should verify this so that we can block by subject)
+  pivot_wider(names_from = Attribute, values_from = Grade)
+
+# Models
+mod.texture     <- lm(Texture ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.flavor      <- lm(Flavor ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.sweetness   <- lm(Sweetness ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.aftertaste  <- lm(Aftertaste ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.overall     <- lm(Overall ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+
+```
+
+
+## 2.5 Assumption Checking
+
+To ensure that the fitted models meet the assumptions of linear regression, residual plots, histograms, and Q-Q plots were examined for each sensory attribute: Texture, Flavor, Sweetness, Aftertaste, and Overall. These diagnostics help verify linearity, homoscedasticity, and normality of errors.
+
+The residuals vs. fitted plots @fig-resid-vs-fitted show that residuals are evenly scattered around the horizontal reference line, indicating no major violations of linearity or unequal variance. The models appear to predict consistently across the range of fitted values.
+
+```{r}
+#| label: fig-resid-vs-fitted
+#| echo: false
+#| fig-cap: "Residuals vs Fitted Values for All Sensory Models"
+#| fig-width: 8
+#| fig-height: 6
+
+par(mfrow = c(3, 2))  # 3 rows, 2 columns
+
+# Texture
+plot(fitted(mod.texture), resid(mod.texture),
+     main = "Residuals vs Fitted - Texture",
+     xlab = "Fitted Values", ylab = "Residuals",
+     pch = 19, col = "steelblue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Flavor
+plot(fitted(mod.flavor), resid(mod.flavor),
+     main = "Residuals vs Fitted - Flavor",
+     xlab = "Fitted Values", ylab = "Residuals",
+     pch = 19, col = "steelblue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Sweetness
+plot(fitted(mod.sweetness), resid(mod.sweetness),
+     main = "Residuals vs Fitted - Sweetness",
+     xlab = "Fitted Values", ylab = "Residuals",
+     pch = 19, col = "steelblue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Aftertaste
+plot(fitted(mod.aftertaste), resid(mod.aftertaste),
+     main = "Residuals vs Fitted - Aftertaste",
+     xlab = "Fitted Values", ylab = "Residuals",
+     pch = 19, col = "steelblue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Overall
+plot(fitted(mod.overall), resid(mod.overall),
+     main = "Residuals vs Fitted - Overall",
+     xlab = "Fitted Values", ylab = "Residuals",
+     pch = 19, col = "steelblue")
+abline(h = 0, col = "red", lwd = 2)
+
+# Leave final panel empty
+plot.new()
+
+```
+
+@fig-hist-residuals displays histograms of residuals with overlaid normal curves. The bell-shaped distributions centered around zero indicate that the residuals approximate a normal distribution, as expected under linear regression.
+
+```{r}
+#| label: fig-hist-residuals
+#| echo: false
+#| fig-cap: "Histograms of Residuals with Normal Curve for All Sensory Models"
+#| fig-width: 8
+#| fig-height: 6
+
+par(mfrow = c(3, 2))  # 3 rows, 2 columns
+
+# Helper function to add bell curve
+add_bell_curve <- function(res) {
+  xfit <- seq(min(res), max(res), length = 100)
+  yfit <- dnorm(xfit, mean = mean(res), sd = sd(res))
+  yfit <- yfit * diff(hist(res, plot = FALSE, breaks = 15)$mids[1:2]) * length(res)
+  lines(xfit, yfit, col = "black", lwd = 2)
+}
+
+# Texture
+res <- resid(mod.texture)
+hist(res, breaks = 15, col = "skyblue", main = "Histogram - Texture", xlab = "Residuals")
+add_bell_curve(res)
+
+# Flavor
+res <- resid(mod.flavor)
+hist(res, breaks = 15, col = "skyblue", main = "Histogram - Flavor", xlab = "Residuals")
+add_bell_curve(res)
+
+# Sweetness
+res <- resid(mod.sweetness)
+hist(res, breaks = 15, col = "skyblue", main = "Histogram - Sweetness", xlab = "Residuals")
+add_bell_curve(res)
+
+# Aftertaste
+res <- resid(mod.aftertaste)
+hist(res, breaks = 15, col = "skyblue", main = "Histogram - Aftertaste", xlab = "Residuals")
+add_bell_curve(res)
+
+# Overall
+res <- resid(mod.overall)
+hist(res, breaks = 15, col = "skyblue", main = "Histogram - Overall", xlab = "Residuals")
+add_bell_curve(res)
+
+# Empty slot for 6th cell
+plot.new()
+
+
+```
+
+@fig-qq-plots presents Q-Q plots for the residuals. While slight deviations from normality were observed at the tails, most points follow the theoretical line, indicating acceptable normality. Such deviations are common in sensory studies and do not substantially affect model validity.
+
+```{r}
+#| label: fig-qq-plots
+#| echo: false
+#| fig-cap: "Q-Q Plots for Residuals of All Sensory Models"
+#| fig-width: 8
+#| fig-height: 10
+
+par(mfrow = c(3, 2))  # 3 rows, 2 columns
+
+# Texture
+qqnorm(resid(mod.texture), main = "Q-Q Plot - Texture")
+qqline(resid(mod.texture), col = "red")
+
+# Flavor
+qqnorm(resid(mod.flavor), main = "Q-Q Plot - Flavor")
+qqline(resid(mod.flavor), col = "red")
+
+# Sweetness
+qqnorm(resid(mod.sweetness), main = "Q-Q Plot - Sweetness")
+qqline(resid(mod.sweetness), col = "red")
+
+# Aftertaste
+qqnorm(resid(mod.aftertaste), main = "Q-Q Plot - Aftertaste")
+qqline(resid(mod.aftertaste), col = "red")
+
+# Overall
+qqnorm(resid(mod.overall), main = "Q-Q Plot - Overall")
+qqline(resid(mod.overall), col = "red")
+
+# Leave last panel blank
+plot.new()
+
+```
+Overall, the diagnostic plots provide strong support that the regression models satisfy key assumptions for inference and prediction.
+
+\newpage
+
+# 3. Result
+In this section, we'll talk about the result after fitting the model. How the Aronia and Sugar level working for each attributes.
+
+```{r, include=FALSE}
+library(tidyverse)
+
+#Data clean
+dat <- readxl::read_excel('Raw dat articles.xlsx') %>%
+  group_by(Recipe, Attribute) %>%
+  mutate(Rep = 1:n()) %>% #Only needed for pivot_wider, assumes subjects are listed sequentially (should verify this so that we can block by subject)
+  pivot_wider(names_from = Attribute, values_from = Grade)
+
+# Models
+mod.texture     <- lm(Texture ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.flavor      <- lm(Flavor ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.sweetness   <- lm(Sweetness ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.aftertaste  <- lm(Aftertaste ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.overall     <- lm(Overall ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+
+
+summary(mod.texture)
+summary(mod.flavor)
+summary(mod.sweetness)
+summary(mod.aftertaste)
+summary(mod.overall)
+
+# ANOVA (Type I Sums of Squares because of regression)
+anova(mod.texture)
+anova(mod.flavor)
+anova(mod.sweetness)
+anova(mod.aftertaste)
+anova(mod.overall)
+
+```
+
+
+## 3.1 Mean Sensory Score for Aronia Jam Recipe
+
+The table @mean-summary-table represents the estimated mean sensory scores for 12 different Aronia jam recipes based on participant ratings for five factors: Texture, Flavor, Sweetness, Aftertaste, and Overall Liking.
+Overall, Recipe 10 (Aronia: 1994 g, Sugar: 2370 g) got the best scores for Flavor (6.05) and Liked It the Most (5.56), making it a standout combination.
+Recipe 2 also turned out well, getting good marks for Flavor and Overall.
+Recipe 3 on the other hand got lower predicted scores for Sweetness and Aftertaste, which suggests that it won't be as appealing to consumers.
+
+In general, recipes with moderate to high amounts of sugar and moderate to high amounts of aronia seemed to give better sensory results.
+
+```{r}
+#| label: mean-summary-table
+#| echo: false
+#| fig-cap: "Summary Table"
+#| fig-width: 8
+#| fig-height: 6
+
+# Step 3: Predict the fitted values
+dat$Texture_Fit     <- predict(mod.texture, newdata = dat)
+dat$Flavor_Fit      <- predict(mod.flavor, newdata = dat)
+dat$Sweetness_Fit   <- predict(mod.sweetness, newdata = dat)
+dat$Aftertaste_Fit  <- predict(mod.aftertaste, newdata = dat)
+dat$Overall_Fit     <- predict(mod.overall, newdata = dat)
+
+# Step 4: Prepare summary table per recipe (mean per recipe if replicates exist)
+summary_table <- dat %>%
+  group_by(Recipe) %>%
+  summarise(
+    Aronia = mean(Aronia),
+    Sugar = mean(Sugar),
+    Texture = round(mean(Texture_Fit), 2),
+    Flavor = round(mean(Flavor_Fit), 2),
+    Sweetness = round(mean(Sweetness_Fit), 2),
+    Aftertaste = round(mean(Aftertaste_Fit), 2),
+    Overall = round(mean(Overall_Fit), 2)
+  ) %>%
+  arrange(Recipe)
+
+
+# Optional: Display using kable if for a report
+library(kableExtra)
+
+summary_table %>%
+  kbl(caption = "Modeled Mean Sensory Scores for Aronia Jam Recipes") %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover"))
+```
+
+## 3.2 ANOVA Result
+
+Note that Model results are summarized using p-values to indicate which ingredient effects were statistically significant for each sensory attribute @anova-table. Full ANOVA outputs are available in the appendix for reference.
+We employed statistical models to determine how Aronia, Sugar, and their combinations affect panelists' sensory ratings of jam recipes.  The analysis examined texture, flavor, sweetness, aftertaste, and overall like.  We examined whether ingredient levels affected panelist assessments for each attribute.
+
+Aronia consistently affected Texture, Flavor, Sweetness, and Overall Perception.  Aronia levels have a big impact on jam sweetness.  This shows that Aronia is a crucial factor in the multidimensional jam experience.
+
+Sugar has more subtle and nuanced effects.  Sugar did not affect most qualities alone.  Sugar had a significant effect on flavor and overall like when considered quadratic (curved).  This suggests that moderate sugar levels may be better than very low or extremely high ones and that sugar's effect is not linear.
+
+Most Aronia-Sugar interactions were not significant.  However, squared Aronia and Sugar interacted meaningfully in Aftertaste, suggesting that particular combinations of these constituents alter aftertaste.  A similar interaction was nearly significant for Overall liking, suggesting a combined effect worth investigating.
+
+Overall, Aronia was the most important element, with Sugar having a secondary but still important function.  These data assist improve recipes by indicating which ingredient levels produce a good sensory experience.
+
+
+```{r}
+#| label: anova-table
+#| echo: false
+#| fig-cap: "ANOVA Table"
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# Helper function to format p-values with significance stars
+format_p <- function(p) {
+  stars <- case_when(
+    p < 0.001 ~ "***",
+    p < 0.01 ~ "**",
+    p < 0.05 ~ "*",
+    p < 0.1 ~ ".",
+    TRUE ~ ""
+  )
+  sprintf("%.4f %s", p, stars)
+}
+
+# Models
+mod.texture    <- lm(Texture ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.flavor     <- lm(Flavor ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.sweetness  <- lm(Sweetness ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.aftertaste <- lm(Aftertaste ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.overall    <- lm(Overall ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+
+# Get tidy p-values and format them
+get_anova_row <- function(mod, name) {
+  p_vals <- anova(mod)[["Pr(>F)"]]
+  tibble(
+    Attribute = name,
+    `Aronia` = format_p(p_vals[1]),
+    `Aronia^2` = format_p(p_vals[2]),
+    `Sugar` = format_p(p_vals[3]),
+    `Sugar^2` = format_p(p_vals[4]),
+    `Aronia:Sugar` = format_p(p_vals[5]),
+    `Aronia:Sugar^2` = format_p(p_vals[6]),
+    `Aronia^2:Sugar` = format_p(p_vals[7]),
+    `Aronia^2:Sugar^2` = format_p(p_vals[8])
+  )
+}
+
+# Bind rows
+anova_summary <- bind_rows(
+  get_anova_row(mod.texture, "Texture"),
+  get_anova_row(mod.flavor, "Flavor"),
+  get_anova_row(mod.sweetness, "Sweetness"),
+  get_anova_row(mod.aftertaste, "Aftertaste"),
+  get_anova_row(mod.overall, "Overall")
+)
+
+# Create kable table
+anova_summary %>%
+  kbl(caption = "ANOVA Table with Significance Levels by Attribute",
+      align = "c", booktabs = TRUE) %>%
+  kable_styling(full_width = FALSE, bootstrap_options = c("striped", "hover")) %>%
+  column_spec(1, bold = TRUE)
+
+```
+
+
+## 3.3 Estimated coefficient
+This table is created from the Model Summary. I have only showed the coefficient value for all attributes.
+
+```{r}
+# Load required libraries
+library(tidyverse)
+library(broom)
+library(knitr)
+library(kableExtra)
+
+# Clean and prepare the data
+dat <- readxl::read_excel('Raw dat articles.xlsx') %>%
+  group_by(Recipe, Attribute) %>%
+  mutate(Rep = 1:n()) %>%
+  pivot_wider(names_from = Attribute, values_from = Grade)
+
+# Fit models
+mod.texture     <- lm(Texture ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.flavor      <- lm(Flavor ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.sweetness   <- lm(Sweetness ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.aftertaste  <- lm(Aftertaste ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+mod.overall     <- lm(Overall ~ (Aronia + I(Aronia^2)) * (Sugar + I(Sugar^2)), data = dat)
+
+# Tidy model outputs
+model_list <- list(Texture = mod.texture, Flavor = mod.flavor, Sweetness = mod.sweetness,
+                   Aftertaste = mod.aftertaste, Overall = mod.overall)
+
+model_summary <- map_dfr(names(model_list), function(name) {
+  tidy(model_list[[name]]) %>%
+    select(term, estimate, std.error) %>%
+    mutate(Attribute = name)
+})
+
+# Reorder and format
+model_summary <- model_summary %>%
+  select(Attribute, term, estimate, std.error) %>%
+  arrange(Attribute) %>%
+  rename(Term = term, Estimate = estimate, `Std. Error` = std.error)
+
+# Display the table
+model_summary %>%
+  kable(digits = 5, caption = "Estimated Coefficients for Each Attribute Model") %>%
+  kable_styling(full_width = FALSE, position = "left")
+
+```
+
+
+## 3.4 Estimated Polynomial Models for Sensory Attributes
+
+Let  $A$ denote **Aronia** level (in grams) and $S$ denote **Sugar** level (in grams). The second-order polynomial models estimated for each sensory attribute are presented below.
+
+---
+
+### 3.4.1 Texture Model
+The model suggests a slight positive effect of Aronia and Sugar, with both linear terms showing moderate coefficients (0.7853 and 0.7566 respectively). However, the quadratic terms and interactions are small, implying nonlinear effects exist but may not be very strong. Texture seems to improve with moderate levels of both ingredients but may plateau or decline at higher values.
+
+$$
+\text{Score (Texture)}= -751.6 + 0.7853A - 0.0002019A^2 + 0.7566S - 0.0001866S^2 -\\
+0.0007824AS + 0.0000001926AS^2 + 0.0000002004A^2S - 0.0000000492A^2S^2 + \varepsilon
+$$
+
+### 3.4.2 Flavor Model
+Both Aronia (0.6859) and Sugar (0.8379) have relatively larger positive coefficients, suggesting strong contributions to flavor. Negative quadratic terms imply that too much of either might reduce flavor ratings, hinting at an optimal mid-range formulation. Interaction terms are small but should not be ignored.
+
+$$
+\text{Score(Flavor)} = -699.5 + 0.6859A - 0.0001648A^2 + 0.8379S - 0.0002429S^2 - \\
+0.0008156AS + 0.0000002367AS^2 + 0.0000001961A^2S - 0.00000005705A^2S^2 + \varepsilon
+$$
+
+### 3.4.3 Sweetness Model
+Here, Sugar (0.3171) has a notable positive effect, as expected, while Aronia has a smaller role. Again, the quadratic and interaction terms suggest a nonlinear relationship, with potential saturation of sweetness scores beyond certain sugar levels. This is intuitive given human taste perception.
+
+$$
+\text{Score(Sweetness)} = -283.6 + 0.2972A - 0.00007714A^2 + 0.3171S - 0.00009014S^2 - \\
+0.0003283AS + 0.00000009323AS^2 + 0.00000008563A^2S - 0.00000002428A^2S^2 + \varepsilon
+$$
+
+### 3.4.4 Aftertaste Model
+The model shows that both Aronia (0.5711) and Sugar (0.7546) contribute positively to aftertaste, suggesting a balanced blend improves the lingering flavor. However, the quadratic terms are negative, indicating that very high levels of Aronia or Sugar may reduce aftertaste satisfaction.
+The interaction terms are small in magnitude, suggesting minor but non-negligible joint effects between Aronia and Sugar. Overall, moderate quantities of both ingredients likely yield the most pleasant aftertaste.
+
+$$
+\text{Score(Aftertaste)} = -581.5 + 0.5711A - 0.0001379A^2 + 0.7546S - 0.0002316S^2 - 0.0007371AS \\
++ 0.0000002269AS^2 + 0.0000001786A^2S - 0.00000005514A^2S^2 + \varepsilon
+$$
+
+### 3.4.5 Overall Model
+
+The Overall score model integrates the combined influence of all other sensory attributes. The coefficients for Aronia (0.1396) and Sugar (0.2461) are smaller than in other models, indicating each ingredient contributes moderately but not overwhelmingly on its own.
+Quadratic and interaction terms again suggest nonlinear relationships, helping fine-tune the prediction for overall appeal. The positive signs for interaction terms imply that the combined effect of Aronia and Sugar enhances the overall score when used in appropriate proportions.
+
+$$
+\text{Score(Overall)} = -139.8 + 0.1396A - 0.00003183A^2 + 0.2461S - 0.00008542S^2 - 0.0002372AS\\
++ 0.00000008246AS^2 + 0.00000005501A^2S - 0.00000001931A^2S^2 + \varepsilon
+$$
+
+These models were fitted using second-order interaction terms to capture the non-linear and joint effects of Aronia and Sugar on sensory scores.
+
+
+
+## 3.5 Optimal Point
+
+To identify the best combinations of Aronia and Sugar for each sensory attribute (such as Texture, Flavor, Sweetness, Aftertaste, and Overall), we used a mathematical technique called optimization. This approach systematically finds ingredient levels that maximize anticipated sensory scores based on our models.  The model determined the ingredient combination with the highest panel rating for each attribute.  After finding these optimal settings, we estimated the standard error and generated a 95% confidence range to determine our prediction confidence.  The ideal Aronia and Sugar levels, estimated score, and uncertainty range for each sensory attribute were listed in a single table.
+
+
+The @optimal-table presents the optimal combinations of Aronia and Sugar that are predicted to produce the highest sensory ratings for each attribute based on our statistical models. For each attribute, the model identifies the ingredient levels that are most likely to maximize the panelists' scores. The predicted rating (on a 1–9 scale) is provided alongside a standard error (SE), which reflects the uncertainty of the prediction, and a 95% confidence interval (CI), indicating the range where the true score is likely to fall. For example, the model suggests that a recipe using 1719 units of Aronia and 1480 units of Sugar would receive an Overall score of approximately 6.07, with a CI from 4.71 to 7.43. Notably, the ideal amount of Aronia and Sugar varies depending on the sensory attribute being optimized—for instance, Sweetness was maximized at a higher Aronia level (2268), demonstrating that ingredient preferences can shift depending on the desired sensory outcome. This table provides practical guidance for formulating jam recipes tailored to specific sensory goals.
+
+```{r, include=FALSE}
+optimize_model <- function(as, model){
+  a = as[1]
+  s = as[2]
+  model = model
+  as.numeric(predict(model, newdata=data.frame(Aronia = a,
+                                               Sugar = s)))
+}
+
+optim(c(mean(dat$Aronia), mean(dat$Sugar)), optimize_model,
+      control = list(fnscale = -1),
+      lower = c(min(dat$Aronia), min(dat$Sugar)),
+      upper = c(max(dat$Aronia), max(dat$Sugar)),
+      method = 'L-BFGS-B', model = mod.texture)
+
+optim(c(mean(dat$Aronia), mean(dat$Sugar)), optimize_model,
+      control = list(fnscale = -1),
+      lower = c(min(dat$Aronia), min(dat$Sugar)),
+      upper = c(max(dat$Aronia), max(dat$Sugar)),
+      method = 'L-BFGS-B', model = mod.flavor)
+
+optim(c(mean(dat$Aronia), mean(dat$Sugar)), optimize_model,
+      control = list(fnscale = -1),
+      lower = c(min(dat$Aronia), min(dat$Sugar)),
+      upper = c(max(dat$Aronia), max(dat$Sugar)),
+      method = 'L-BFGS-B', model = mod.sweetness)
+
+optim(c(mean(dat$Aronia), mean(dat$Sugar)), optimize_model,
+      control = list(fnscale = -1),
+      lower = c(min(dat$Aronia), min(dat$Sugar)),
+      upper = c(max(dat$Aronia), max(dat$Sugar)),
+      method = 'L-BFGS-B', model = mod.aftertaste)
+
+optim(c(mean(dat$Aronia), mean(dat$Sugar)), optimize_model,
+      control = list(fnscale = -1),
+      lower = c(min(dat$Aronia), min(dat$Sugar)),
+      upper = c(max(dat$Aronia), max(dat$Sugar)),
+      method = 'L-BFGS-B', model = mod.overall)
+```
+
+
+```{r}
+#| label: optimal-table
+#| echo: false
+#| fig-cap: "Optimal Table"
+
+# Define the model-object pairs
+model_list <- list(
+  Texture    = mod.texture,
+  Flavor     = mod.flavor,
+  Sweetness  = mod.sweetness,
+  Aftertaste = mod.aftertaste,
+  Overall    = mod.overall
+)
+
+# Define a function to get prediction + SE + CI at optimal point
+get_optimal_with_ci <- function(model, attribute_name) {
+  opt_result <- optim(
+    par = c(mean(dat$Aronia), mean(dat$Sugar)),
+    fn = function(as) optimize_model(as, model),
+    method = "L-BFGS-B",
+    control = list(fnscale = -1),
+    lower = c(min(dat$Aronia), min(dat$Sugar)),
+    upper = c(max(dat$Aronia), max(dat$Sugar))
+  )
+  
+  opt_aronia <- opt_result$par[1]
+  opt_sugar  <- opt_result$par[2]
+  
+  pred <- predict(model, newdata = data.frame(Aronia = opt_aronia, Sugar = opt_sugar), se.fit = TRUE)
+  
+  fit  <- as.numeric(pred$fit)
+  se   <- as.numeric(pred$se.fit)
+  ci_lower <- fit - 1.96 * se
+  ci_upper <- fit + 1.96 * se
+  
+  tibble(
+    Attribute = attribute_name,
+    Aronia = round(opt_aronia, 3),
+    Sugar  = round(opt_sugar, 3),
+    Predicted_Grade = round(fit, 3),
+    SE = round(se, 3),
+    CI = glue::glue("[{round(ci_lower, 2)}, {round(ci_upper, 2)}]")
+  )
+}
+
+# Run for all attributes and bind rows
+library(glue)
+library(tibble)
+optimal_ci_table <- bind_rows(
+  get_optimal_with_ci(mod.texture, "Texture"),
+  get_optimal_with_ci(mod.flavor, "Flavor"),
+  get_optimal_with_ci(mod.sweetness, "Sweetness"),
+  get_optimal_with_ci(mod.aftertaste, "Aftertaste"),
+  get_optimal_with_ci(mod.overall, "Overall")
+)
+
+# Display with kable
+library(knitr)
+library(kableExtra)
+
+optimal_ci_table %>%
+  kbl(
+    caption = "Optimal Aronia and Sugar Levels for Maximizing Predicted Sensory Scores",
+    align = "c"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) %>%
+  column_spec(1, bold = TRUE)
+
+```
+
+\newpage
+
+## 3.6 Sensory Score for Aronia (2268g) and Sugar (1650.8)
+This table particularly made on client's request. He wanted to know the sensory score for this particular amount of Aronia and Sugar 
+
+The @predicted_sensory-table shows expected sensory assessment ratings for a jam recipe containing 2268g Aronia and 1650.8g Sugar.  This formulation should produce good sensory ratings across all aspects, according to fitting models.  Flavor (5.28), Sweetness (5.12), and Aftertaste (5.00) had the highest projected performance, each with a 95% confidence interval above 4.3.  Overall acceptance is predicted at 4.89 with a 95% CI of [4.27, 5.50], showing a positive perception although slightly lower than the others.  The weakest feature is texture, with a mean score of 4.12 and larger CI, suggesting potential for improvement if texture is important.
+
+[Note: Why SE and CI are used: Standard Error (SE) indicates how precise the prediction is-smaller SE means more reliable. Confidence Intervals (CI) show the likely range for each score, helping assess if the recipe meets desired thresholds and compare across options. It also ensure that the prediction is statistically sound]
+
+```{r}
+#| label: predicted_sensory-table
+#| echo: false
+#| fig-cap: "Predicted Sensory Table for 2268g Aronia and 1650.8g Sugar"
+
+# Define the tested recipe
+tested_recipe <- data.frame(Aronia = 2268, Sugar = 1650.8)
+
+# Function to predict with SE and CI
+get_predictions <- function(model, data) {
+  preds <- predict(model, newdata = data, se.fit = TRUE)
+  estimate <- preds$fit
+  se <- preds$se.fit
+  lower <- estimate - 1.96 * se
+  upper <- estimate + 1.96 * se
+  c(Estimate = estimate, SE = se, CI_Lower = lower, CI_Upper = upper)
+}
+
+# Apply function to all models
+scores <- list(
+  Texture     = get_predictions(mod.texture, tested_recipe),
+  Flavor      = get_predictions(mod.flavor, tested_recipe),
+  Sweetness   = get_predictions(mod.sweetness, tested_recipe),
+  Aftertaste  = get_predictions(mod.aftertaste, tested_recipe),
+  Overall     = get_predictions(mod.overall, tested_recipe)
+)
+
+# Combine and clean
+score_table <- do.call(rbind, scores) %>%
+  as.data.frame() %>%
+  rownames_to_column("Attribute") %>%
+  mutate(across(where(is.numeric), round, 2))
+
+# Show with kableExtra
+library(kableExtra)
+
+score_table %>%
+  kbl(
+    caption = "Predicted Sensory Scores for Recipe (2268g Aronia, 1650.8g Sugar)",
+    col.names = c("Attribute", "Estimate", "SE", "95% CI Lower", "95% CI Upper"),
+    align = "c"
+  ) %>%
+  kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed")
+  ) %>%
+  column_spec(1, bold = TRUE)
+
+```
+
+
+## 3.7 3D Plots
+The following 3D surface plots visualize how each sensory attribute — *Texture*, *Flavor*, *Sweetness*, *Aftertaste*, and *Overall* — changes based on different combinations of Aronia and Sugar levels. Surface height and color gradients represent model-predicted ratings, with yellow peaks indicating higher scores and purple valleys indicating lower ones.
+
+### 3.7.1 Texture
+
+The @fig-texture 3D surface plot shows how predicted scores vary with Aronia and Sugar levels. The optimal texture score of 5.45 (out of 9) is predicted at approximately 1719g of Aronia and 2017g of Sugar. Texture tends to improve with moderate Aronia and higher Sugar, while extreme values in either direction reduce the rating.
+
+```{r}
+#| label: fig-texture
+#| fig-cap: "Texture Surface Plot"
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+include_graphics("newplot-1.png")
+
+```
+
+### 3.7.2 Flavor
+Flavor @fig-flavor scores peak at around 5.98 when using approximately 1719g of Aronia and 1724g of Sugar. The plot reveals that both overly low and high ingredient levels reduce the predicted flavor rating, emphasizing the importance of balance.
+
+```{r}
+#| label: fig-flavor
+#| fig-cap: "Flavor Surface Plot"
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+include_graphics("flavor.png")
+```
+
+### 3.7.3 Sweetness
+Sweetness @fig-sweetness improves steadily with increased Aronia up to about 2268g, paired with roughly 1794g of Sugar, producing a predicted score of 5.20. Excessive levels in either ingredient show diminishing returns.
+
+```{r}
+#| label: fig-sweetness
+#| fig-cap: "Sweetness Surface Plot"
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+include_graphics("sweetness.png")
+```
+
+
+### 3.7.4 Aftertaste
+Aftertaste @fig-aftertaste is optimized at approximately 2024g of Aronia and 2370g of Sugar, with a predicted rating of 5.50. Higher Sugar improves this attribute, but balance with Aronia is necessary to avoid score decline.
+
+```{r}
+#| label: fig-aftertaste
+#| fig-cap: "Aftertaste Surface Plot"
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+include_graphics("aftertaste.png")
+```
+
+### 3.7.5 Overall 
+The Overall @fig-overall score reaches its maximum predicted value of 6.07 when the jam contains around 1719g of Aronia and 1480g of Sugar. The plot highlights a distinct peak, suggesting this combination is most likely to yield the most accepted product.
+
+```{r}
+#| label: fig-overall
+#| fig-cap: "Overall Acceptance Surface Plot"
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+include_graphics("overall.png")
+```
+
+# 4. Discussion
+
+# 4.1 Conclusion
+This analysis explored how different levels of Aronia and Sugar affect the sensory qualities of jam, focusing on Texture, Flavor, Sweetness, Aftertaste, and Overall acceptance. By applying second-order polynomial regression models with interaction terms, we captured both linear and non-linear ingredient effects. Aronia consistently had a strong and significant influence on key attributes, whereas Sugar played a more nuanced role, especially through its quadratic and interaction effects. 
+Optimization analysis identified the ideal ingredient levels, showing that Flavor and Overall liking were maximized when using approximately 1719g of Aronia and 1480–1720g of Sugar.
+
+# 4.2 Recommendation
+
+Based on the analysis, we recommend using Aronia as the primary ingredient to enhance overall sensory appeal, as it significantly boosts ratings for Flavor, Sweetness, and Overall liking. Sugar should be optimized in moderation, contributing meaningfully to Aftertaste and Overall, but showing diminishing returns at higher levels. To maximize general consumer satisfaction, the optimal formulation lies around 1719g of Aronia and 1480–1720g of Sugar, as identified by the model. For more targeted improvements—such as boosting Aftertaste or Sweetness—recipes can be further refined using the attribute-specific optimal values identified in the study.
+
+
+
+# 5. References
+
+::: {#refs}
+
+:::
+
+# Appendix
+
+## SAS/R Code
+
+```{r}
+# | echo: true
+# | eval: true
+# Include your R or SAS code here
+```
